@@ -127,7 +127,7 @@ def mostraObj(instrucoes,clock,regis):
 		time.sleep(1)
 		if i != -1 and i != 0:
 			if cont == 1:
-				print(cont,"Buscando Operando: ",i.operacao,' ',i.operandos,'\n')
+				print(cont,"Buscando Instrução: ",i.operacao,' ',i.operandos,'\n')
 			if cont == 2:
 				print(cont,"Decodificando: ",i.operacao,' ',i.operandos,'\n')
 			if cont == 3:
@@ -161,14 +161,12 @@ def atualizaDependentes(dependentes,buff):
 				dependentes.update({buff.operandos[0]: 1})
 
 def verificaHazard(buff,dependentes,pipeline):
-
 	if len(buff.operandos)>=2: # verifica se não é um jump 
 		for i in buff.operandos:
-			for j in range(3):
-				if pipeline[j] != 0 and pipeline[j] != -1:
-					if len(pipeline[j].operandos)>=2:
-						if i == pipeline[j].operandos[0]:
-							return True		
+			if pipeline[2] != 0 and pipeline[2] != -1:
+				if len(pipeline[2].operandos)>=2:
+					if i == pipeline[2].operandos[0]:
+						return True		
 	return False				
 
 
@@ -212,8 +210,8 @@ def main():
 			buff = instrucoes[pc]	
 
 
-		if buff != -1:
-			while verificaHazard(buff,dependentes,pipeline):
+		if pipeline[1] != -1 and pipeline[1] != 0:
+			while verificaHazard(pipeline[1],dependentes,pipeline):
 				if pipeline[3] != 0 and pipeline[3] != -1:
 					dependentes.update({pipeline[3].operandos[0] : 0})
 				
@@ -222,9 +220,8 @@ def main():
 
 				execute(pipeline[2],regis,pipeline,lines,instrucoes)
 				pipeline[3] = pipeline [2]
-				pipeline[2] = pipeline [1]
-				pipeline[1] = pipeline [0]
-				pipeline[0] = 0
+				pipeline[2] = -1
+				
 				mostraObj(pipeline,clock,regis)
 
 
