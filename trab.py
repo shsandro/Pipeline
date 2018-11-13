@@ -42,22 +42,24 @@ def subi(operandos,regis):
 def move(operandos,regis):
 	regis.update({operandos[0]:regis[operandos[1]]})	
 	
-def jump(operandos,lines,pipeline):
+def jump(operandos,lines,pipeline,instrucoes):
 	global buff
 	global pc
 	cont = 0
 	for i in lines:
 		if i == operandos[0]:
-			pc = cont  
+			pc = cont + 1  
 		else:
 			cont = cont + 1	
 	pipeline[0] = -1
-	pipeline[1] = -1	
-	buff = -1	
+	pipeline[1] = -1
+	buff = instrucoes[pc]
 
 
 
-def execute(instrucao,regis,pipeline,lines):
+
+
+def execute(instrucao,regis,pipeline,lines,instrucoes):
 	global clock
 	if instrucao != -1 and instrucao != 0:
 
@@ -91,7 +93,7 @@ def execute(instrucao,regis,pipeline,lines):
 		elif(instrucao.operacao.startswith('j')):
 			
 
-			jump(instrucao.operandos,lines,pipeline)
+			jump(instrucao.operandos,lines,pipeline,instrucoes)
 
 
 
@@ -139,7 +141,7 @@ def mostraObj(instrucoes,clock,regis):
 					mostrar(regis)	
 					limpar()
 
-	print('\n\n')
+	print('\n\n')	
 
 def mostrar(regis):
 	cont = 0
@@ -194,16 +196,20 @@ def main():
 		if len(posicao)>1:			
 			operadores = posicao[1].split(',')
 			instrucao = instru(0,operadores,posicao[0])	
+		else:
+			instrucao = instru(0,None,posicao)	
 		instrucoes.append(instrucao)	
 
-
-
+	
+	
 	while(verificaPip(pipeline)):
 
-		if (pc>=len(instrucoes)):
+		if (pc>=len(lines)):
 			buff = - 1
-		else:
-			buff = instrucoes[pc]
+		else:	
+			while instrucoes[pc].operandos == None:
+				pc = pc + 1
+			buff = instrucoes[pc]	
 
 
 		if buff != -1:
@@ -214,32 +220,39 @@ def main():
 
 				clock = clock + 1
 
-				execute(pipeline[2],regis,pipeline,lines)
+				execute(pipeline[2],regis,pipeline,lines,instrucoes)
 				pipeline[3] = pipeline [2]
 				pipeline[2] = pipeline [1]
 				pipeline[1] = pipeline [0]
 				pipeline[0] = 0
+				mostraObj(pipeline,clock,regis)
 
 
 		clock = clock + 1
+
 		if pipeline[3] != 0 and pipeline[3] != -1:
 			dependentes.update({pipeline[3].operandos[0] : 0})	
 
 		atualizaDependentes(dependentes,buff)
+
 		if pipeline[3] != 0 and pipeline[3] != -1:
 			dependentes.update({pipeline[3].operandos[0] : 0})
 
-		execute(pipeline[2],regis,pipeline,lines)
+		execute(pipeline[2],regis,pipeline,lines,instrucoes)
 		pipeline[3] = pipeline [2]
 		pipeline[2] = pipeline [1]
 		pipeline[1] = pipeline [0]
 		pipeline[0] = buff
 
+		if not verificaPip(pipeline):
+			print("PARBÉNS VOCE TERMINOU O PIPELINE!!!\n\n")
+			exit()
+
 		mostraObj(pipeline,clock,regis)
-		print(pipeline)
-		
-		if pc<len(instrucoes):
-			pc = pc + 1			
+		#pipeline
+		if(pc<len(lines)):
+			pc = pc + 1	
+					
 
 
 if __name__ == '__main__':
